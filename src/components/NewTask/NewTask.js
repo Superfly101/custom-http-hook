@@ -1,46 +1,34 @@
-import useRequest from "../Hooks/use-request";
-
+import useHttp from "../Hooks/use-http";
 import Section from "../UI/Section";
 import TaskForm from "./TaskForm";
 
 const NewTask = (props) => {
-  // const [isLoading, setIsLoading] = useState(false);
-  // const [error, setError] = useState(null);
+  const { isLoading, error, sendRequest: sendTaskReqeust } = useHttp();
 
-  // const enterTaskHandler = async (taskText) => {
-  //   setIsLoading(true);
-  //   setError(null);
-  //   try {
-  //     const response = await fetch(
-        // "https://react-http-6ae41-default-rtdb.firebaseio.com/tasks.json",
-        // {
-        //   method: "POST",
-        //   body: JSON.stringify({ text: taskText }),
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        // }
-      // );
+  const createTask = (taskText, taskData) => {
+    const generatedId = taskData.name; // firebase-specific => "name" contains generated id
+    const createdTask = { id: generatedId, text: taskText };
 
-  //     if (!response.ok) {
-  //       throw new Error("Request failed!");
-  //     }
+    props.onAddTask(createdTask);
+  };
 
-  //     const data = await response.json();
-
-  //     const generatedId = data.name; // firebase-specific => "name" contains generated id
-  //     const createdTask = { id: generatedId, text: taskText };
-
-  //     props.onAddTask(createdTask);
-  //   } catch (err) {
-  //     setError(err.message || "Something went wrong!");
-  //   }
-  //   setIsLoading(false);
-  // };
-  const [isLoading, error, sendRequest] = useRequest('post', props.onAddTask);
+  const enterTaskHandler = async (taskText) => {
+    sendTaskReqeust(
+      {
+        url: "https://react-http-6ae41-default-rtdb.firebaseio.com/tasks.json",
+        method: "POST",
+        body: { text: taskText },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+      createTask.bind(null, taskText)
+    );
+  };
+  // const [isLoading, error, sendRequest] = useRequest('post', props.onAddTask);
   return (
     <Section>
-      <TaskForm onEnterTask={sendRequest} loading={isLoading} />
+      <TaskForm onEnterTask={enterTaskHandler} loading={isLoading} />
       {error && <p>{error}</p>}
     </Section>
   );

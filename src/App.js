@@ -1,49 +1,34 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
 
-import Tasks from './components/Tasks/Tasks';
-import NewTask from './components/NewTask/NewTask';
-import useRequest from './components/Hooks/use-request';
+import Tasks from "./components/Tasks/Tasks";
+import NewTask from "./components/NewTask/NewTask";
+import useHttp from "./components/Hooks/use-http";
 
 function App() {
-  // const [isLoading, setIsLoading] = useState(false);
-  // const [error, setError] = useState(null);
-  // const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
-  // const fetchTasks = async (taskText) => {
-  //   setIsLoading(true);
-  //   setError(null);
-  //   try {
-  //     const response = await fetch(
-  //       'https://react-http-6ae41-default-rtdb.firebaseio.com/tasks.json'
-  //     );
+ 
 
-  //     if (!response.ok) {
-  //       throw new Error('Request failed!');
-  //     }
+  const { isLoading, error, sendRequest: fetchTasks } = useHttp();
 
-  //     const data = await response.json();
+  useEffect(() => {
+    const transformTasks = ((taskObj) => {
+      const loadedTasks = [];
+  
+      for (const taskKey in taskObj) {
+        loadedTasks.push({ id: taskKey, text: taskObj[taskKey].text });
+      }
+      setTasks(loadedTasks);
+    });
 
-  //     const loadedTasks = [];
+    fetchTasks({
+      url: "https://react-http-6ae41-default-rtdb.firebaseio.com/tasks.json",
+    }, transformTasks);
+  }, [fetchTasks]);
 
-  //     for (const taskKey in data) {
-  //       loadedTasks.push({ id: taskKey, text: data[taskKey].text });
-  //     }
-
-  //     setTasks(loadedTasks);
-  //   } catch (err) {
-  //     setError(err.message || 'Something went wrong!');
-  //   }
-  //   setIsLoading(false);
-  // };
-  const [isLoading, error, sendRequest,  tasks, taskAddHandler] = useRequest();
-
-  // useEffect(() => {
-  //   fetchTasks();
-  // }, []);
-
-  // const taskAddHandler = (task) => {
-  //   setTasks((prevTasks) => prevTasks.concat(task));
-  // };
+  const taskAddHandler = (task) => {
+    setTasks((prevTasks) => prevTasks.concat(task));
+  };
 
   return (
     <React.Fragment>
@@ -52,7 +37,7 @@ function App() {
         items={tasks}
         loading={isLoading}
         error={error}
-        onFetch={sendRequest}
+        onFetch={fetchTasks}
       />
     </React.Fragment>
   );
